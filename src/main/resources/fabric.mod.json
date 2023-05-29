@@ -3,9 +3,9 @@
 	"id": "quickloot",
 	"version": "${version}",
 	"name": "QuickLoot",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Mod based on the Skyrim mod of the same name that allows you to loot containers without opening them.",
 	"authors": [
-		"Me!"
+		"Bawnorton"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
@@ -29,6 +29,7 @@
 			"environment": "client"
 		}
 	],
+	"accessWidener": "quickloot.accesswidener",
 	"depends": {
 		"fabricloader": ">=0.14.19",
 		"minecraft": "~1.19.4",

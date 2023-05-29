@@ -1,10 +1,16 @@
 {
-	"required": true,
-	"package": "com.bawnorton.quickloot.mixin.client",
-	"compatibilityLevel": "JAVA_17",
-	"client": [
-	],
-	"injectors": {
-		"defaultRequire": 1
-	}
+  "required": true,
+  "package": "com.bawnorton.quickloot.mixin.client",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+    "KeyBindningMixin",
+    "ClientPlayNetworkHandlerMixin",
+    "LockableContainerBlockEntityMixin",
+    "PlayerEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": [
+  ]
 }
