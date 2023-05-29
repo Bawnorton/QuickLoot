@@ -51,10 +51,6 @@ public class RenderHelper {
         itemRenderer.renderInGui(matrixStack, stack, x, y);
     }
 
-    public static void drawItem(MatrixStack matrixStack, Item item, int x, int y) {
-        drawItem(matrixStack, item.getDefaultStack(), x, y);
-    }
-
     public static void startScissor(int x, int y, int width, int height) {
         DrawableHelper.enableScissor(x, y, x + width, y + height);
     }

@@ -15,12 +15,10 @@ public abstract class LockableContainerBlockEntityMixin implements ContainerExte
     public void requestStack(ItemStack stack, int slot) {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(player == null) return;
-        int syncId = player.currentScreenHandler.syncId;
 
-        openContainer();
         ClientPlayerInteractionManager interactionManager = MinecraftClient.getInstance().interactionManager;
         if(interactionManager == null) return;
 
-        interactionManager.clickSlot(syncId, slot, 0, SlotActionType.QUICK_MOVE, player);
+        interactionManager.clickSlot(player.currentScreenHandler.syncId, slot, 0, SlotActionType.QUICK_MOVE, player);
     }
 }

@@ -1,5 +1,8 @@
 package com.bawnorton.quickloot.extend;
 
+import com.bawnorton.quickloot.QuickLootClient;
+import com.bawnorton.quickloot.util.Status;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
@@ -13,7 +16,7 @@ import net.minecraft.util.hit.HitResult;
 import java.util.Optional;
 
 public interface ContainerExtender {
-    default boolean setAsCurrentContainer() {
+    default boolean setAsCurrent() {
         MinecraftClient client = MinecraftClient.getInstance();
         PlayerEntityExtender player = (PlayerEntityExtender) client.player;
         if (player == null) return false;
@@ -27,7 +30,7 @@ public interface ContainerExtender {
         return true;
     }
 
-    default void openContainer() {
+    default void open(Status status) {
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerInteractionManager interactionManager = client.interactionManager;
         if (interactionManager == null) return;
@@ -38,19 +41,39 @@ public interface ContainerExtender {
         HitResult hitResult = client.crosshairTarget;
         if (!(hitResult instanceof BlockHitResult blockHitResult)) return;
 
-        PlayerEntityExtender player = (PlayerEntityExtender) client.player;
+        BlockEntity blockEntity = world.getBlockEntity(blockHitResult.getBlockPos());
+        if (!(blockEntity instanceof ContainerExtender containerExtender)) return;
+        if (containerExtender.notCurrent()) return;
+
+        ClientPlayerEntity player = client.player;
         if (player == null) return;
 
-        player.setQuickLooting(true);
+        ((PlayerEntityExtender) player).setStatus(status);
         interactionManager.sendSequencedPacket(world, i -> new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, blockHitResult, i));
     }
 
-    default void closeContainer() {
+    default boolean notCurrent() {
+        PlayerEntityExtender player = (PlayerEntityExtender) MinecraftClient.getInstance().player;
+        if (player == null) return true;
+
+        Optional<ContainerExtender> quickLootContainer = player.getQuickLootContainer();
+        if (quickLootContainer.isPresent()) {
+            ContainerExtender container = quickLootContainer.get();
+            return container != this;
+        }
+        return true;
+    }
+
+    default void close() {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) return;
 
         player.closeHandledScreen();
-        ((PlayerEntityExtender) player).setQuickLooting(false);
+        ((PlayerEntityExtender) player).setStatus(Status.IDLE);
+    }
+
+    default boolean canOpen() {
+        return true;
     }
 
     void requestStack(ItemStack stack, int slot);

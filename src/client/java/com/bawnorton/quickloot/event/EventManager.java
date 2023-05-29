@@ -4,6 +4,7 @@ import com.bawnorton.quickloot.QuickLootClient;
 import com.bawnorton.quickloot.extend.ContainerExtender;
 import com.bawnorton.quickloot.extend.PlayerEntityExtender;
 import com.bawnorton.quickloot.keybind.KeybindManager;
+import com.bawnorton.quickloot.util.Status;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.block.BlockState;
@@ -25,11 +26,23 @@ public class EventManager {
 
             BlockPos blockPos = hitResult.getBlockPos();
             BlockEntity blockEntity = client.world.getBlockEntity(blockPos);
-            if(!(blockEntity instanceof ContainerExtender containerExtender)) return;
-
-            if(containerExtender.setAsCurrentContainer()) {
-                containerExtender.openContainer();
+            if(!(blockEntity instanceof ContainerExtender containerExtender)) {
+                player.setQuickLootContainer(null);
+                return;
             }
+
+            if (containerExtender.setAsCurrent() && !player.getStatus().isPaused()) {
+                if(client.player.isSneaking()) return;
+                if(containerExtender.canOpen()) {
+                    containerExtender.open(Status.PREVIEWING);
+                    QuickLootClient.getPreviewWidget().start();
+                } else {
+                    QuickLootClient.getPreviewWidget().setBlocked(true);
+                }
+                return;
+            }
+            if(player.getStatus().isPaused()) return;
+
             BlockState state = client.world.getBlockState(blockPos);
             String containerName = state.getBlock().getName().getString();
             QuickLootClient.getPreviewWidget().render(matrixStack, containerName);

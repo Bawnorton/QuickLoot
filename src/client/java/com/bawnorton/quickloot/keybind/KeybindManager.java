@@ -3,13 +3,11 @@ package com.bawnorton.quickloot.keybind;
 import com.bawnorton.quickloot.QuickLootClient;
 import com.bawnorton.quickloot.extend.ContainerExtender;
 import com.bawnorton.quickloot.extend.PlayerEntityExtender;
+import com.bawnorton.quickloot.util.Status;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Pair;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.Optional;
@@ -51,11 +49,8 @@ public class KeybindManager {
             ClientPlayerEntity player = client.player;
             if (player == null) return;
             Optional<ContainerExtender> container = ((PlayerEntityExtender) player).getQuickLootContainer();
-            if (container.isPresent()) {
-                Pair<ItemStack, Integer> target = QuickLootClient.getPreviewWidget().getSelectedItem();
-                if(target == null) return;
-                container.get().requestStack(target.getLeft(), target.getRight());
-            }
+            if(QuickLootClient.getPreviewWidget().getSelectedItem() == null) return;
+            container.ifPresent(containerExtender -> containerExtender.open(Status.LOOTING));
         }
         if (NEXT.wasPressed()) {
             QuickLootClient.getPreviewWidget().next();

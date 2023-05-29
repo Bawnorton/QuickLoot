@@ -6,6 +6,7 @@ import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Pair;
+import net.minecraft.util.math.MathHelper;
 
 import java.util.*;
 
@@ -21,21 +22,17 @@ public class QuickLootPreviewWidget {
 
     private final Map<ItemStack, Integer> stacks;
     private final List<ItemStack> stackList = new ArrayList<>();
-    private int syncId;
 
     private int selected;
     private int scrollOffset;
+    private boolean blocked;
 
     public QuickLootPreviewWidget() {
         stacks = new HashMap<>();
         selected = -1;
     }
 
-    public void updateItems(int syncId, Map<ItemStack, Integer> stackSlotMap) {
-        if(this.syncId != syncId) {
-            this.syncId = syncId;
-            start();
-        }
+    public void updateItems(Map<ItemStack, Integer> stackSlotMap) {
         stacks.clear();
         stackList.clear();
         for(Map.Entry<ItemStack, Integer> entry : stackSlotMap.entrySet()) {
@@ -57,6 +54,7 @@ public class QuickLootPreviewWidget {
         this.x = halfWidth - (WIDTH / 2);
         this.y = halfHeight - (HEIGHT / 2);
         scaleToFit(width, height, window.getScaleFactor());
+        selected = MathHelper.clamp(selected, 0, stackList.size() - 1);
     }
 
     public void scaleToFit(int winWidth, int winHeight, double winScale) {
@@ -76,9 +74,19 @@ public class QuickLootPreviewWidget {
 
     public void render(MatrixStack matrixStack, String title) {
         refreshPositionAndScale();
-        RenderHelper.drawBorderedArea(matrixStack, x + X_OFFSET, y, WIDTH, HEIGHT, 2,0xAA000000, 0xFF000000);
         RenderHelper.drawOutlinedText(matrixStack, title, x + X_OFFSET + 4, y - 10, 0xFFFFFFFF, 0xFF000000);
+        if(stackList.isEmpty()) {
+            RenderHelper.drawBorderedArea(matrixStack, x + X_OFFSET, y, WIDTH, ROW_HEIGHT + 6, 2,0xAA000000, 0xFF000000);
+            RenderHelper.drawText(matrixStack, "♦ Empty", x + X_OFFSET + 8, y + 8, 0xFFFFFFFF);
+            return;
+        }
+        if(blocked) {
+            RenderHelper.drawBorderedArea(matrixStack, x + X_OFFSET, y, WIDTH, ROW_HEIGHT + 6, 2,0xAA000000, 0xFF000000);
+            RenderHelper.drawText(matrixStack, "♦ Blocked", x + X_OFFSET + 8, y + 8, 0xFFFFFFFF);
+            return;
+        }
 
+        RenderHelper.drawBorderedArea(matrixStack, x + X_OFFSET, y, WIDTH, HEIGHT, 2,0xAA000000, 0xFF000000);
         RenderHelper.startScissor(x + X_OFFSET + 2, y + 2, WIDTH - 4, HEIGHT - 4);
         int row = 0;
         for(ItemStack stack : stackList) {
@@ -101,6 +109,14 @@ public class QuickLootPreviewWidget {
         ItemStack stack = stackList.get(selected);
         int slot = stacks.get(stack);
         return new Pair<>(stack, slot);
+    }
+
+    public void setBlocked(boolean blocked) {
+        this.blocked = blocked;
+    }
+
+    public boolean isBlocked() {
+        return blocked;
     }
 
     public void next() {

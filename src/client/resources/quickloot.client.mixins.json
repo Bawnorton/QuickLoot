@@ -3,9 +3,12 @@
   "package": "com.bawnorton.quickloot.mixin.client",
   "compatibilityLevel": "JAVA_17",
   "client": [
-    "KeyBindningMixin",
     "ClientPlayNetworkHandlerMixin",
+    "HandledScreenMixin",
+    "KeyBindningMixin",
     "LockableContainerBlockEntityMixin",
+    "ChestBlockEntityMixin",
+    "ShulkerBlockEntityMixin",
     "PlayerEntityMixin"
   ],
   "injectors": {

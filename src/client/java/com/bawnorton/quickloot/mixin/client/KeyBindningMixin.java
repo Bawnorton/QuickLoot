@@ -14,9 +14,9 @@ public abstract class KeyBindningMixin {
 
     @Inject(method = "unpressAll", at = @At("HEAD"), cancellable = true)
     private static void onUnpressAll(CallbackInfo ci) {
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        PlayerEntityExtender player = (PlayerEntityExtender) MinecraftClient.getInstance().player;
         if(player == null) return;
-        if(((PlayerEntityExtender) player).isQuickLooting()) {
+        if(!player.getStatus().isIdle()) {
             ci.cancel();
         }
     }
