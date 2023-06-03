@@ -13,7 +13,6 @@ import net.minecraft.network.packet.s2c.play.InventoryS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
 import net.minecraft.network.packet.s2c.play.WorldEventS2CPacket;
 import net.minecraft.sound.SoundCategory;
-import net.minecraft.util.Pair;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -51,18 +50,13 @@ public abstract class ClientPlayNetworkHandlerMixin {
                 QuickLootClient.getPreviewWidget().updateItems(stackSlotMap);
                 container.close();
             }
-            case LOOTING -> {
-                Pair<ItemStack, Integer> target = QuickLootClient.getPreviewWidget().getSelectedItem();
-                if(target == null) return;
-
-                ItemStack stack = target.getLeft();
-                int slot = target.getRight();
+            case LOOTING -> QuickLootClient.getPreviewWidget().getSelectedItem().ifPresent((stack, slot) -> {
                 if(stack.isEmpty()) return;
 
-                container.requestStack(stack, slot);
+                container.requestStack(slot);
                 container.close();
                 container.open(Status.PREVIEWING);
-            }
+            });
             case IDLE -> container.close();
         }
     }
@@ -72,7 +66,7 @@ public abstract class ClientPlayNetworkHandlerMixin {
         PlayerEntityExtender player = (PlayerEntityExtender) client.player;
         if(player == null) return;
 
-        if((player.getStatus().isLooting() || player.getStatus().isPreviewing()) && packet.getCategory().equals(SoundCategory.BLOCKS)) {
+        if((player.getStatus().doesReadContainer()) && packet.getCategory().equals(SoundCategory.BLOCKS)) {
             ci.cancel();
         }
     }

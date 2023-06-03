@@ -1,11 +1,14 @@
 package com.bawnorton.quickloot.render.screen;
 
+import com.bawnorton.quickloot.keybind.KeybindManager;
 import com.bawnorton.quickloot.render.RenderHelper;
+import com.bawnorton.quickloot.util.OptionalStackSlot;
+import net.fabricmc.fabric.mixin.client.keybinding.KeyBindingAccessor;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.Pair;
 import net.minecraft.util.math.MathHelper;
 
 import java.util.*;
@@ -19,6 +22,8 @@ public class QuickLootPreviewWidget {
     private int X_OFFSET;
     private int x;
     private int y;
+    private int shownHeight;
+    private int shownRows;
 
     private final Map<ItemStack, Integer> stacks;
     private final List<ItemStack> stackList = new ArrayList<>();
@@ -55,6 +60,7 @@ public class QuickLootPreviewWidget {
         this.y = halfHeight - (HEIGHT / 2);
         scaleToFit(width, height, window.getScaleFactor());
         selected = MathHelper.clamp(selected, 0, stackList.size() - 1);
+        scrollOffset = MathHelper.clamp(scrollOffset, 0, stackList.size() - shownRows);
     }
 
     public void scaleToFit(int winWidth, int winHeight, double winScale) {
@@ -70,45 +76,72 @@ public class QuickLootPreviewWidget {
             HEIGHT = winHeight / 2 - 10;
             WIDTH = (int) (HEIGHT * ASPECT_RATIO);
         }
+        if (stackList.size() >= (HEIGHT - 4) / ROW_HEIGHT) {
+            shownHeight = HEIGHT;
+        } else {
+            shownHeight = stackList.size() * ROW_HEIGHT + 6;
+        }
+        shownRows = (shownHeight - 4) / ROW_HEIGHT;
     }
 
-    public void render(MatrixStack matrixStack, String title) {
+    public void render(MatrixStack matricies, String title) {
         refreshPositionAndScale();
-        RenderHelper.drawOutlinedText(matrixStack, title, x + X_OFFSET + 4, y - 10, 0xFFFFFFFF, 0xFF000000);
-        if(stackList.isEmpty()) {
-            RenderHelper.drawBorderedArea(matrixStack, x + X_OFFSET, y, WIDTH, ROW_HEIGHT + 6, 2,0xAA000000, 0xFF000000);
-            RenderHelper.drawText(matrixStack, "♦ Empty", x + X_OFFSET + 8, y + 8, 0xFFFFFFFF);
-            return;
-        }
-        if(blocked) {
-            RenderHelper.drawBorderedArea(matrixStack, x + X_OFFSET, y, WIDTH, ROW_HEIGHT + 6, 2,0xAA000000, 0xFF000000);
-            RenderHelper.drawText(matrixStack, "♦ Blocked", x + X_OFFSET + 8, y + 8, 0xFFFFFFFF);
+        matricies.push();
+        matricies.translate(0, 0, 500);
+        RenderHelper.drawOutlinedText(matricies, title, x + X_OFFSET + 4, y - 10, 0xFFFFFFFF, 0xFF000000);
+        if(stackList.isEmpty() || blocked) {
+            RenderHelper.drawBorderedArea(matricies, x + X_OFFSET, y, WIDTH, ROW_HEIGHT + 6, 2,0xAA000000, 0xFF000000);
+            RenderHelper.drawText(matricies, blocked ? "Blocked" : "Empty", x + X_OFFSET + 25, y + 8, 0xFFFFFFFF);
+            RenderHelper.drawText(matricies, "♦", x + X_OFFSET + 10, y + 8, 0xFFFFFFFF);
+            renderButtonHints(matricies, y + ROW_HEIGHT + 13, false, !blocked);
+            matricies.pop();
             return;
         }
 
-        RenderHelper.drawBorderedArea(matrixStack, x + X_OFFSET, y, WIDTH, HEIGHT, 2,0xAA000000, 0xFF000000);
-        RenderHelper.startScissor(x + X_OFFSET + 2, y + 2, WIDTH - 4, HEIGHT - 4);
+        RenderHelper.drawBorderedArea(matricies, x + X_OFFSET, y, WIDTH, shownHeight, 2,0xAA000000, 0xFF000000);
+        RenderHelper.startScissor(x + X_OFFSET + 2, y + 2, WIDTH - 6, shownHeight - 4);
         int row = 0;
         for(ItemStack stack : stackList) {
             int count = stack.getCount();
             String name = stack.getName().getString();
             int yOffset = (row - scrollOffset) * ROW_HEIGHT + 4;
             if(row == selected) {
-                RenderHelper.drawArea(matrixStack, x + X_OFFSET + 4, y + yOffset, WIDTH - 8, ROW_HEIGHT - 2, 0x55FFFFFF);
+                RenderHelper.drawArea(matricies, x + X_OFFSET + 4, y + yOffset, WIDTH - 8, ROW_HEIGHT - 2, 0x55FFFFFF);
             }
-            RenderHelper.drawItem(matrixStack, stack, x + X_OFFSET + 4, y + yOffset);
-            RenderHelper.drawText(matrixStack, name + " (" + count + ")", x + X_OFFSET + 25, y + yOffset + 4, 0xFFFFFFFF);
+            RenderHelper.drawItem(matricies, stack, x + X_OFFSET + 4, y + yOffset);
+            RenderHelper.drawText(matricies, name + " (" + count + ")", x + X_OFFSET + 25, y + yOffset + 4, 0xFFFFFFFF);
             row++;
         }
         RenderHelper.endScissor();
+        renderButtonHints(matricies, shownHeight + y + 7, true, true);
+        matricies.pop();
     }
 
-    public Pair<ItemStack, Integer> getSelectedItem() {
-        if(selected == -1) return null;
-        if(stackList.isEmpty()) return null;
+    private void renderButtonHints(MatrixStack matricies, int y, boolean showTake, boolean showOpen) {
+        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+        String lootKey = KeybindManager.getLootKey().toUpperCase();
+        String openKey = KeybindManager.getOpenKey().toUpperCase();
+        int lootKeyWidth = textRenderer.getWidth(lootKey);
+        int openKeyWidth = textRenderer.getWidth(openKey);
+        int fullWidth = Math.max(lootKeyWidth + textRenderer.getWidth("Take"), openKeyWidth + textRenderer.getWidth("Open")) + 9;
+        int x = this.x + X_OFFSET + (WIDTH / 2) - (fullWidth / 2);
+
+        if(showTake) {
+            RenderHelper.drawBorderedAreaAroundText(matricies, lootKey, x, y, 5, 2, 0xAA000000, 0xFF000000, 0xFFFFFFFF);
+            RenderHelper.drawOutlinedText(matricies, "Take", x + lootKeyWidth + 9, y, 0xFFFFFFFF, 0xFF000000);
+        }
+        if(showOpen) {
+            RenderHelper.drawBorderedAreaAroundText(matricies, openKey, x, y + (showTake ? 20 : 0), 5, 2, 0xAA000000, 0xFF000000, 0xFFFFFFFF);
+            RenderHelper.drawOutlinedText(matricies, "Open", x + openKeyWidth + 9, y + (showTake ? 20 : 0), 0xFFFFFFFF, 0xFF000000);
+        }
+    }
+
+    public OptionalStackSlot getSelectedItem() {
+        if(selected == -1) return OptionalStackSlot.empty();
+        if(stackList.isEmpty()) return OptionalStackSlot.empty();
         ItemStack stack = stackList.get(selected);
         int slot = stacks.get(stack);
-        return new Pair<>(stack, slot);
+        return OptionalStackSlot.of(stack, slot);
     }
 
     public void setBlocked(boolean blocked) {
@@ -124,8 +157,7 @@ public class QuickLootPreviewWidget {
             start();
         } else {
             selected++;
-            int shownCount = (HEIGHT - 4) / ROW_HEIGHT - 1;
-            if(selected > (scrollOffset + shownCount)) {
+            if(selected > (scrollOffset + shownRows - 1)) {
                 scrollOffset++;
             }
         }
@@ -144,8 +176,7 @@ public class QuickLootPreviewWidget {
 
     public void end() {
         selected = stackList.size() - 1;
-        int itemsShown = (HEIGHT - 4) / ROW_HEIGHT;
-        scrollOffset = Math.max(0, stackList.size() - itemsShown);
+        scrollOffset = Math.max(0, stackList.size() - shownRows);
     }
 
     public void start() {

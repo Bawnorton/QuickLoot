@@ -32,7 +32,6 @@ public class EventManager {
             }
 
             if (containerExtender.setAsCurrent() && !player.getStatus().isPaused()) {
-                if(client.player.isSneaking()) return;
                 if(containerExtender.canOpen()) {
                     containerExtender.open(Status.PREVIEWING);
                     QuickLootClient.getPreviewWidget().start();

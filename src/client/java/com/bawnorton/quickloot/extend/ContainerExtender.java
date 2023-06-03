@@ -9,6 +9,7 @@ import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
+import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -76,5 +77,13 @@ public interface ContainerExtender {
         return true;
     }
 
-    void requestStack(ItemStack stack, int slot);
+    default void requestStack(int slot) {
+        ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        if(player == null) return;
+
+        ClientPlayerInteractionManager interactionManager = MinecraftClient.getInstance().interactionManager;
+        if(interactionManager == null) return;
+
+        interactionManager.clickSlot(player.currentScreenHandler.syncId, slot, 0, SlotActionType.QUICK_MOVE, player);
+    }
 }

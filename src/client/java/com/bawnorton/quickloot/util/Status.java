@@ -21,4 +21,8 @@ public enum Status {
     public boolean isLooting() {
         return this == LOOTING;
     }
+
+    public boolean doesReadContainer() {
+        return isPreviewing() || isLooting();
+    }
 }
