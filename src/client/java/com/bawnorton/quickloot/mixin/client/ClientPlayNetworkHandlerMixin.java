@@ -3,6 +3,7 @@ package com.bawnorton.quickloot.mixin.client;
 import com.bawnorton.quickloot.QuickLootClient;
 import com.bawnorton.quickloot.extend.ContainerExtender;
 import com.bawnorton.quickloot.extend.PlayerEntityExtender;
+import com.bawnorton.quickloot.keybind.KeybindManager;
 import com.bawnorton.quickloot.util.Status;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
@@ -16,18 +17,19 @@ import net.minecraft.sound.SoundCategory;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Mixin(ClientPlayNetworkHandler.class)
 public abstract class ClientPlayNetworkHandlerMixin {
     @Shadow @Final private MinecraftClient client;
+
+    @Unique
+    private final HashSet<String> toCancel = new HashSet<>();
 
     @Inject(method = "onInventory", at = @At(value = "INVOKE", target = "Lnet/minecraft/screen/ScreenHandler;updateSlotStacks(ILjava/util/List;Lnet/minecraft/item/ItemStack;)V"))
     private void readInventory(InventoryS2CPacket packet, CallbackInfo ci) {
@@ -38,6 +40,10 @@ public abstract class ClientPlayNetworkHandlerMixin {
         Optional<ContainerExtender> optional = playerExtender.getQuickLootContainer();
         ContainerExtender container = optional.orElse(null);
         if(container == null) return;
+
+        if(playerExtender.getStatus().isPaused() && !KeybindManager.checkContainerSync()) {
+            playerExtender.setStatus(Status.PREVIEWING); // fix for containers opening when they shouldn't
+        }
 
         switch (playerExtender.getStatus()) {
             case PREVIEWING -> {
@@ -61,12 +67,17 @@ public abstract class ClientPlayNetworkHandlerMixin {
         }
     }
 
-    @Inject(method = "onPlaySound", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "onPlaySound", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/world/ClientWorld;playSound(Lnet/minecraft/entity/player/PlayerEntity;DDDLnet/minecraft/registry/entry/RegistryEntry;Lnet/minecraft/sound/SoundCategory;FFJ)V"), cancellable = true)
     private void onPlaySound(PlaySoundS2CPacket packet, CallbackInfo ci) {
         PlayerEntityExtender player = (PlayerEntityExtender) client.player;
         if(player == null) return;
 
-        if((player.getStatus().doesReadContainer()) && packet.getCategory().equals(SoundCategory.BLOCKS)) {
+        String idPath = packet.getSound().value().getId().getPath();
+        if(toCancel.contains(idPath)) {
+            toCancel.remove(idPath);
+            ci.cancel();
+        } else if(idPath.endsWith("open") && player.getStatus().doesReadContainer()) {
+            toCancel.add(idPath.replace("open", "close"));
             ci.cancel();
         }
     }

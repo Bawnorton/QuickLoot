@@ -7,7 +7,6 @@ import com.bawnorton.quickloot.util.Status;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
 import org.lwjgl.glfw.GLFW;
 
@@ -28,6 +27,8 @@ public class KeybindManager {
     public static final KeyBindingAction START = KeyBindingAction.add(KeyBindingHelper.registerKeyBinding(new KeyBinding("key.quickloot.start", GLFW.GLFW_KEY_LEFT, "category.quickloot")), QuickLootClient.getPreviewWidget()::start);
     public static final KeyBindingAction END = KeyBindingAction.add(KeyBindingHelper.registerKeyBinding(new KeyBinding("key.quickloot.end", GLFW.GLFW_KEY_RIGHT, "category.quickloot")), QuickLootClient.getPreviewWidget()::end);
 
+    private static boolean openContainerSync = false;
+
     public static void init() {
         QuickLootClient.LOGGER.debug("Initializing Keybinds");
     }
@@ -38,14 +39,24 @@ public class KeybindManager {
         PREVIOUS.handle();
         START.handle();
         END.handle();
+
+        openContainerSync = getOpenKeybind().isPressed();
     }
 
-    public static String getLootKey() {
+    public static String getLootKeyString() {
         return LOOT.keybind.getBoundKeyLocalizedText().getString();
     }
 
-    public static String getOpenKey() {
-        return MinecraftClient.getInstance().options.useKey.getBoundKeyLocalizedText().getString();
+    public static String getOpenKeyString() {
+        return getOpenKeybind().getBoundKeyLocalizedText().getString();
+    }
+
+    public static boolean checkContainerSync() {
+        return openContainerSync;
+    }
+
+    private static KeyBinding getOpenKeybind() {
+        return MinecraftClient.getInstance().options.useKey;
     }
 
     private record KeyBindingAction(KeyBinding keybind, KeybindAction action) {

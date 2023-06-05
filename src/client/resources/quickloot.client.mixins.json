@@ -9,12 +9,14 @@
     "KeyBindningMixin",
     "LockableContainerBlockEntityMixin",
     "PlayerEntityMixin",
+    "ChestMinecartEntityMixin",
+    "EnderChestBlockEntityMixin",
+    "HopperMinecartEntityMixin",
     "ShulkerBlockEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
-    "EnderChestBlockEntityMixin"
   ]
 }

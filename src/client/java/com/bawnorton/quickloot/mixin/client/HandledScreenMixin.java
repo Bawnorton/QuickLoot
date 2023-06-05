@@ -41,8 +41,7 @@ public abstract class HandledScreenMixin {
         PlayerEntityExtender player = (PlayerEntityExtender) MinecraftClient.getInstance().player;
         if(player == null) return;
 
-        if(player.getStatus().isPaused()) {
-            player.getQuickLootContainer().ifPresent(container -> container.open(Status.PREVIEWING));
-        }
+        player.setStatus(Status.IDLE);
+        player.getQuickLootContainer().ifPresent(container -> container.open(Status.PREVIEWING));
     }
 }

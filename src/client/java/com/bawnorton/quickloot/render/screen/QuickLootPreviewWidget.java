@@ -3,7 +3,6 @@ package com.bawnorton.quickloot.render.screen;
 import com.bawnorton.quickloot.keybind.KeybindManager;
 import com.bawnorton.quickloot.render.RenderHelper;
 import com.bawnorton.quickloot.util.OptionalStackSlot;
-import net.fabricmc.fabric.mixin.client.keybinding.KeyBindingAccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.util.Window;
@@ -119,8 +118,8 @@ public class QuickLootPreviewWidget {
 
     private void renderButtonHints(MatrixStack matricies, int y, boolean showTake, boolean showOpen) {
         TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
-        String lootKey = KeybindManager.getLootKey().toUpperCase();
-        String openKey = KeybindManager.getOpenKey().toUpperCase();
+        String lootKey = KeybindManager.getLootKeyString().toUpperCase();
+        String openKey = KeybindManager.getOpenKeyString().toUpperCase();
         int lootKeyWidth = textRenderer.getWidth(lootKey);
         int openKeyWidth = textRenderer.getWidth(openKey);
         int fullWidth = Math.max(lootKeyWidth + textRenderer.getWidth("Take"), openKeyWidth + textRenderer.getWidth("Open")) + 9;

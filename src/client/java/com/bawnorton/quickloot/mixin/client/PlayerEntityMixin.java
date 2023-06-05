@@ -4,6 +4,7 @@ import com.bawnorton.quickloot.extend.ContainerExtender;
 import com.bawnorton.quickloot.extend.PlayerEntityExtender;
 import com.bawnorton.quickloot.util.Status;
 import net.minecraft.entity.player.PlayerEntity;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
@@ -11,11 +12,11 @@ import java.util.Optional;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin implements PlayerEntityExtender {
-    @Unique
+    @Unique @Nullable
     private ContainerExtender quickLootContainer;
 
     @Unique
-    private Status status = Status.IDLE;
+    private Status status = Status.PREVIEWING;
 
     @Override
     public Optional<ContainerExtender> getQuickLootContainer() {
@@ -23,7 +24,7 @@ public abstract class PlayerEntityMixin implements PlayerEntityExtender {
     }
 
     @Override
-    public void setQuickLootContainer(ContainerExtender quickLootContainer) {
+    public void setQuickLootContainer(@Nullable ContainerExtender quickLootContainer) {
         this.quickLootContainer = quickLootContainer;
     }
 
