@@ -1,6 +1,6 @@
 package com.bawnorton.quickloot.mixin.client;
 
-import com.bawnorton.quickloot.extend.ContainerExtender;
+import com.bawnorton.quickloot.extend.QuickLootContainer;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.block.entity.BlockEntity;
@@ -11,7 +11,7 @@ import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(EnderChestBlockEntity.class)
-public abstract class EnderChestBlockEntityMixin extends BlockEntity implements ContainerExtender {
+public abstract class EnderChestBlockEntityMixin extends BlockEntity implements QuickLootContainer {
     protected EnderChestBlockEntityMixin(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }

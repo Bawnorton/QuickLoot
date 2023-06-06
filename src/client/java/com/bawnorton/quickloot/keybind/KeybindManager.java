@@ -1,7 +1,7 @@
 package com.bawnorton.quickloot.keybind;
 
 import com.bawnorton.quickloot.QuickLootClient;
-import com.bawnorton.quickloot.extend.ContainerExtender;
+import com.bawnorton.quickloot.extend.QuickLootContainer;
 import com.bawnorton.quickloot.extend.PlayerEntityExtender;
 import com.bawnorton.quickloot.util.Status;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -13,12 +13,12 @@ import org.lwjgl.glfw.GLFW;
 import java.util.Optional;
 
 @SuppressWarnings("unused")
-public class KeybindManager {
+public abstract class KeybindManager {
     public static final KeyBindingAction LOOT = KeyBindingAction.add(KeyBindingHelper.registerKeyBinding(new KeyBinding("key.quickloot.loot", GLFW.GLFW_KEY_R, "category.quickloot")), () -> {
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerEntity player = client.player;
         if (player == null) return;
-        Optional<ContainerExtender> container = ((PlayerEntityExtender) player).getQuickLootContainer();
+        Optional<QuickLootContainer> container = ((PlayerEntityExtender) player).getQuickLootContainer();
         if(QuickLootClient.getPreviewWidget().getSelectedItem().isEmpty()) return;
         container.ifPresent(containerExtender -> containerExtender.open(Status.LOOTING));
     });

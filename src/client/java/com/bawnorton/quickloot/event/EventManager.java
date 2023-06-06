@@ -1,8 +1,8 @@
 package com.bawnorton.quickloot.event;
 
 import com.bawnorton.quickloot.QuickLootClient;
-import com.bawnorton.quickloot.extend.ContainerExtender;
-import com.bawnorton.quickloot.extend.EntityContainerExtender;
+import com.bawnorton.quickloot.extend.QuickLootContainer;
+import com.bawnorton.quickloot.extend.EntityQuickLootContainer;
 import com.bawnorton.quickloot.extend.PlayerEntityExtender;
 import com.bawnorton.quickloot.keybind.KeybindManager;
 import com.bawnorton.quickloot.util.Status;
@@ -18,7 +18,7 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 
-public class EventManager {
+public abstract class EventManager {
     private static final MinecraftClient client = MinecraftClient.getInstance();
 
     public static void init() {
@@ -42,17 +42,17 @@ public class EventManager {
         assert client.world != null;
         BlockPos blockPos = hitResult.getBlockPos();
         BlockEntity blockEntity = client.world.getBlockEntity(blockPos);
-        if(!(blockEntity instanceof ContainerExtender containerExtender)) {
+        if(!(blockEntity instanceof QuickLootContainer quickLootContainer)) {
             player.setQuickLootContainer(null);
             return;
         }
 
-        boolean newContainer = containerExtender.setAsCurrent();
+        boolean newContainer = quickLootContainer.setAsCurrent();
         if(player.getStatus().isPaused()) return;
 
         if (newContainer) {
-            if(containerExtender.canOpen()) {
-                containerExtender.open(Status.PREVIEWING);
+            if(quickLootContainer.canOpen()) {
+                quickLootContainer.open(Status.PREVIEWING);
                 QuickLootClient.getPreviewWidget().start();
             } else {
                 QuickLootClient.getPreviewWidget().setBlocked(true);
@@ -67,7 +67,7 @@ public class EventManager {
 
     private static void handleEntityTarget(PlayerEntityExtender player, MatrixStack matricies, EntityHitResult hitResult) {
         Entity entity = hitResult.getEntity();
-        if(!(entity instanceof EntityContainerExtender containerExtender)) {
+        if(!(entity instanceof EntityQuickLootContainer containerExtender)) {
             player.setQuickLootContainer(null);
             return;
         }

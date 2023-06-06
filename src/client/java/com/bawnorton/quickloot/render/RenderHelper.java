@@ -16,7 +16,7 @@ import org.lwjgl.BufferUtils;
 import static net.minecraft.client.gui.DrawableHelper.fill;
 
 @SuppressWarnings("DuplicatedCode")
-public class RenderHelper {
+public abstract class RenderHelper {
     public static void drawArea(MatrixStack matrices, int x, int y, int width, int height, int colour) {
         fill(matrices, x, y, x + width, y + height, colour);
     }

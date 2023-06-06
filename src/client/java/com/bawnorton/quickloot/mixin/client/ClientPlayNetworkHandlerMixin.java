@@ -1,7 +1,7 @@
 package com.bawnorton.quickloot.mixin.client;
 
 import com.bawnorton.quickloot.QuickLootClient;
-import com.bawnorton.quickloot.extend.ContainerExtender;
+import com.bawnorton.quickloot.extend.QuickLootContainer;
 import com.bawnorton.quickloot.extend.PlayerEntityExtender;
 import com.bawnorton.quickloot.keybind.KeybindManager;
 import com.bawnorton.quickloot.util.Status;
@@ -13,7 +13,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.s2c.play.InventoryS2CPacket;
 import net.minecraft.network.packet.s2c.play.PlaySoundS2CPacket;
 import net.minecraft.network.packet.s2c.play.WorldEventS2CPacket;
-import net.minecraft.sound.SoundCategory;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -37,8 +36,8 @@ public abstract class ClientPlayNetworkHandlerMixin {
         if(player == null) return;
 
         PlayerEntityExtender playerExtender = (PlayerEntityExtender) player;
-        Optional<ContainerExtender> optional = playerExtender.getQuickLootContainer();
-        ContainerExtender container = optional.orElse(null);
+        Optional<QuickLootContainer> optional = playerExtender.getQuickLootContainer();
+        QuickLootContainer container = optional.orElse(null);
         if(container == null) return;
 
         if(playerExtender.getStatus().isPaused() && !KeybindManager.checkContainerSync()) {

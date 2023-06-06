@@ -5,8 +5,8 @@ import com.bawnorton.quickloot.util.Status;
 import java.util.Optional;
 
 public interface PlayerEntityExtender {
-    Optional<ContainerExtender> getQuickLootContainer();
-    void setQuickLootContainer(ContainerExtender quickLootContainer);
+    Optional<QuickLootContainer> getQuickLootContainer();
+    void setQuickLootContainer(QuickLootContainer container);
     Status getStatus();
     void setStatus(Status status);
 }

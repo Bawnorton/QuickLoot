@@ -14,15 +14,15 @@ import net.minecraft.util.hit.HitResult;
 
 import java.util.Optional;
 
-public interface ContainerExtender {
+public interface QuickLootContainer {
     default boolean setAsCurrent() {
         MinecraftClient client = MinecraftClient.getInstance();
         PlayerEntityExtender player = (PlayerEntityExtender) client.player;
         if (player == null) return false;
 
-        Optional<ContainerExtender> quickLootContainer = player.getQuickLootContainer();
+        Optional<QuickLootContainer> quickLootContainer = player.getQuickLootContainer();
         if (quickLootContainer.isPresent()) {
-            ContainerExtender container = quickLootContainer.get();
+            QuickLootContainer container = quickLootContainer.get();
             if (container == this) return false;
         }
         player.setQuickLootContainer(this);
@@ -41,8 +41,8 @@ public interface ContainerExtender {
         if (!(hitResult instanceof BlockHitResult blockHitResult)) return;
 
         BlockEntity blockEntity = world.getBlockEntity(blockHitResult.getBlockPos());
-        if (!(blockEntity instanceof ContainerExtender containerExtender)) return;
-        if (containerExtender.notCurrent()) return;
+        if (!(blockEntity instanceof QuickLootContainer container)) return;
+        if (container.notCurrent()) return;
 
         ClientPlayerEntity player = client.player;
         if (player == null) return;
@@ -55,9 +55,9 @@ public interface ContainerExtender {
         PlayerEntityExtender player = (PlayerEntityExtender) MinecraftClient.getInstance().player;
         if (player == null) return true;
 
-        Optional<ContainerExtender> quickLootContainer = player.getQuickLootContainer();
+        Optional<QuickLootContainer> quickLootContainer = player.getQuickLootContainer();
         if (quickLootContainer.isPresent()) {
-            ContainerExtender container = quickLootContainer.get();
+            QuickLootContainer container = quickLootContainer.get();
             return container != this;
         }
         return true;

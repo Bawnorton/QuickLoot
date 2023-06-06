@@ -11,7 +11,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 
-public interface EntityContainerExtender extends ContainerExtender {
+public interface EntityQuickLootContainer extends QuickLootContainer {
     @Override
     default void open(Status status) {
         MinecraftClient client = MinecraftClient.getInstance();
@@ -25,8 +25,8 @@ public interface EntityContainerExtender extends ContainerExtender {
         if (!(hitResult instanceof EntityHitResult entityHitResult)) return;
 
         Entity entity = entityHitResult.getEntity();
-        if (!(entity instanceof EntityContainerExtender containerExtender)) return;
-        if (containerExtender.notCurrent()) return;
+        if (!(entity instanceof EntityQuickLootContainer container)) return;
+        if (container.notCurrent()) return;
 
         ClientPlayerEntity player = client.player;
         if (player == null) return;
