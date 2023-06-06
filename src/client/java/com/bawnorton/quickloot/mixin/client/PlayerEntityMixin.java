@@ -1,7 +1,7 @@
 package com.bawnorton.quickloot.mixin.client;
 
-import com.bawnorton.quickloot.extend.QuickLootContainer;
 import com.bawnorton.quickloot.extend.PlayerEntityExtender;
+import com.bawnorton.quickloot.extend.QuickLootContainer;
 import com.bawnorton.quickloot.util.Status;
 import net.minecraft.entity.player.PlayerEntity;
 import org.jetbrains.annotations.Nullable;
@@ -16,7 +16,7 @@ public abstract class PlayerEntityMixin implements PlayerEntityExtender {
     private QuickLootContainer quickLootContainer;
 
     @Unique
-    private Status status = Status.PREVIEWING;
+    private Status status = Status.IDLE;
 
     @Override
     public Optional<QuickLootContainer> getQuickLootContainer() {

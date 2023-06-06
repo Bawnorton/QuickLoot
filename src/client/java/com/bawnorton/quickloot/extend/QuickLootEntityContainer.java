@@ -11,7 +11,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 
-public interface EntityQuickLootContainer extends QuickLootContainer {
+public interface QuickLootEntityContainer extends QuickLootContainer {
     /**
      * Handles the opening of this container.
      * Overridden to open the container as an entity.
@@ -22,6 +22,7 @@ public interface EntityQuickLootContainer extends QuickLootContainer {
      */
     @Override
     default void open(Status status) {
+        if(!canOpen()) return;
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerInteractionManager interactionManager = client.interactionManager;
         if (interactionManager == null) return;
@@ -33,7 +34,7 @@ public interface EntityQuickLootContainer extends QuickLootContainer {
         if (!(hitResult instanceof EntityHitResult entityHitResult)) return;
 
         Entity entity = entityHitResult.getEntity();
-        if (!(entity instanceof EntityQuickLootContainer container)) return;
+        if (!(entity instanceof QuickLootEntityContainer container)) return;
         if (container.notCurrent()) return;
 
         ClientPlayerEntity player = client.player;

@@ -10,7 +10,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(KeyBinding.class)
 public abstract class KeyBindningMixin {
-
     @Inject(method = "unpressAll", at = @At("HEAD"), cancellable = true)
     private static void onUnpressAll(CallbackInfo ci) {
         PlayerEntityExtender player = (PlayerEntityExtender) MinecraftClient.getInstance().player;

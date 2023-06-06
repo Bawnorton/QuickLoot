@@ -42,6 +42,7 @@ public interface QuickLootContainer {
      *               See {@link Status} for more information.
      */
     default void open(Status status) {
+        if(!canOpen()) return;
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerInteractionManager interactionManager = client.interactionManager;
         if (interactionManager == null) return;

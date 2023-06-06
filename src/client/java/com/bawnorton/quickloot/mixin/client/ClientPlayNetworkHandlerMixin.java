@@ -96,7 +96,7 @@ public abstract class ClientPlayNetworkHandlerMixin {
 
         player.getQuickLootContainer().ifPresent(container -> {
             if(container.canOpen() && QuickLootClient.getPreviewWidget().isBlocked()) {
-                QuickLootClient.getPreviewWidget().setBlocked(false);
+                QuickLootClient.getPreviewWidget().resetStatus();
                 container.open(Status.PREVIEWING);
             }
         });

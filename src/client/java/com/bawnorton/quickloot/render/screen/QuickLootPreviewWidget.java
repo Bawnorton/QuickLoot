@@ -2,6 +2,7 @@ package com.bawnorton.quickloot.render.screen;
 
 import com.bawnorton.quickloot.keybind.KeybindManager;
 import com.bawnorton.quickloot.render.RenderHelper;
+import com.bawnorton.quickloot.util.ContainerStatus;
 import com.bawnorton.quickloot.util.OptionalStackSlot;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -29,7 +30,7 @@ public class QuickLootPreviewWidget {
 
     private int selected;
     private int scrollOffset;
-    private boolean blocked;
+    private ContainerStatus status;
 
     public QuickLootPreviewWidget() {
         stacks = new HashMap<>();
@@ -47,9 +48,17 @@ public class QuickLootPreviewWidget {
             stackList.add(stack);
         }
         stackList.sort(Comparator.comparing(stack -> stack.getItem().getName().getString()));
+
+        if(stacks.isEmpty()) {
+            if(status.isNoHint() || status.isNoTakeHint()) {
+                status = ContainerStatus.NO_HINT_EMPTY;
+            } else {
+                status = ContainerStatus.EMPTY;
+            }
+        }
     }
 
-    public void refreshPositionAndScale() {
+    private void refresh() {
         Window window = MinecraftClient.getInstance().getWindow();
         int width = window.getScaledWidth();
         int height = window.getScaledHeight();
@@ -62,7 +71,7 @@ public class QuickLootPreviewWidget {
         scrollOffset = MathHelper.clamp(scrollOffset, 0, stackList.size() - shownRows);
     }
 
-    public void scaleToFit(int winWidth, int winHeight, double winScale) {
+    private void scaleToFit(int winWidth, int winHeight, double winScale) {
         HEIGHT = (int) (600 / winScale);
         WIDTH = (int) (HEIGHT * ASPECT_RATIO);
         X_OFFSET = (int) (WIDTH * 0.7);
@@ -84,15 +93,15 @@ public class QuickLootPreviewWidget {
     }
 
     public void render(MatrixStack matricies, String title) {
-        refreshPositionAndScale();
+        refresh();
         matricies.push();
         matricies.translate(0, 0, 500);
         RenderHelper.drawOutlinedText(matricies, title, x + X_OFFSET + 4, y - 10, 0xFFFFFFFF, 0xFF000000);
-        if(stackList.isEmpty() || blocked) {
+        if(!status.isNormal()) {
             RenderHelper.drawBorderedArea(matricies, x + X_OFFSET, y, WIDTH, ROW_HEIGHT + 6, 2,0xAA000000, 0xFF000000);
-            RenderHelper.drawText(matricies, blocked ? "Blocked" : "Empty", x + X_OFFSET + 25, y + 8, 0xFFFFFFFF);
+            RenderHelper.drawText(matricies, status.getText(), x + X_OFFSET + 25, y + 8, 0xFFFFFFFF);
             RenderHelper.drawText(matricies, "♦", x + X_OFFSET + 10, y + 8, 0xFFFFFFFF);
-            renderButtonHints(matricies, y + ROW_HEIGHT + 13, false, !blocked);
+            renderButtonHints(matricies, y + ROW_HEIGHT + 13);
             matricies.pop();
             return;
         }
@@ -104,7 +113,7 @@ public class QuickLootPreviewWidget {
             int count = stack.getCount();
             String name = stack.getName().getString();
             int yOffset = (row - scrollOffset) * ROW_HEIGHT + 4;
-            if(row == selected) {
+            if(row == selected && !status.isNoHint()) {
                 RenderHelper.drawArea(matricies, x + X_OFFSET + 4, y + yOffset, WIDTH - 8, ROW_HEIGHT - 2, 0x55FFFFFF);
             }
             RenderHelper.drawItem(matricies, stack, x + X_OFFSET + 4, y + yOffset);
@@ -112,11 +121,12 @@ public class QuickLootPreviewWidget {
             row++;
         }
         RenderHelper.endScissor();
-        renderButtonHints(matricies, shownHeight + y + 7, true, true);
+        renderButtonHints(matricies, shownHeight + y + 7);
         matricies.pop();
     }
 
-    private void renderButtonHints(MatrixStack matricies, int y, boolean showTake, boolean showOpen) {
+    private void renderButtonHints(MatrixStack matricies, int y) {
+        if(status.isNoHint()) return;
         TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
         String lootKey = KeybindManager.getLootKeyString().toUpperCase();
         String openKey = KeybindManager.getOpenKeyString().toUpperCase();
@@ -125,14 +135,13 @@ public class QuickLootPreviewWidget {
         int fullWidth = Math.max(lootKeyWidth + textRenderer.getWidth("Take"), openKeyWidth + textRenderer.getWidth("Open")) + 9;
         int x = this.x + X_OFFSET + (WIDTH / 2) - (fullWidth / 2);
 
-        if(showTake) {
+        if(!status.isNoTakeHint()) {
             RenderHelper.drawBorderedAreaAroundText(matricies, lootKey, x, y, 5, 2, 0xAA000000, 0xFF000000, 0xFFFFFFFF);
             RenderHelper.drawOutlinedText(matricies, "Take", x + lootKeyWidth + 9, y, 0xFFFFFFFF, 0xFF000000);
         }
-        if(showOpen) {
-            RenderHelper.drawBorderedAreaAroundText(matricies, openKey, x, y + (showTake ? 20 : 0), 5, 2, 0xAA000000, 0xFF000000, 0xFFFFFFFF);
-            RenderHelper.drawOutlinedText(matricies, "Open", x + openKeyWidth + 9, y + (showTake ? 20 : 0), 0xFFFFFFFF, 0xFF000000);
-        }
+        RenderHelper.drawBorderedAreaAroundText(matricies, openKey, x, y + (status.isNoTakeHint() ? 0 : 20), 5, 2, 0xAA000000, 0xFF000000, 0xFFFFFFFF);
+        RenderHelper.drawOutlinedText(matricies, "Open", x + openKeyWidth + 9, y + (status.isNoTakeHint() ? 0 : 20), 0xFFFFFFFF, 0xFF000000);
+
     }
 
     public OptionalStackSlot getSelectedItem() {
@@ -143,12 +152,24 @@ public class QuickLootPreviewWidget {
         return OptionalStackSlot.of(stack, slot);
     }
 
-    public void setBlocked(boolean blocked) {
-        this.blocked = blocked;
+    public void setStatus(ContainerStatus status) {
+        this.status = status;
+    }
+
+    public void block() {
+        status = ContainerStatus.BLOCKED;
+    }
+
+    public void resetStatus() {
+        status = ContainerStatus.NORMAL;
     }
 
     public boolean isBlocked() {
-        return blocked;
+        return status.isBlocked();
+    }
+
+    public boolean requiresSneaking() {
+        return status == ContainerStatus.REQUIRES_SNEAKING;
     }
 
     public void next() {
