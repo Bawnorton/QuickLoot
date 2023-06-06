@@ -1,5 +1,6 @@
 package com.bawnorton.quickloot.extend;
 
+import com.bawnorton.quickloot.mixin.client.ChestBlockEntityMixin;
 import com.bawnorton.quickloot.util.Status;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
@@ -15,6 +16,10 @@ import net.minecraft.util.hit.HitResult;
 import java.util.Optional;
 
 public interface QuickLootContainer {
+    /**
+     * Sets this container as the current quick loot container.
+     * @return true if the container was not already current, false otherwise.
+     */
     default boolean setAsCurrent() {
         MinecraftClient client = MinecraftClient.getInstance();
         PlayerEntityExtender player = (PlayerEntityExtender) client.player;
@@ -29,6 +34,13 @@ public interface QuickLootContainer {
         return true;
     }
 
+    /**
+     * Handles the opening of this container.
+     * @param status Controls the behavior of how the container is opened.
+     *               PREVIEWING: Opens the container in preview mode.
+     *               LOOTING: Opens the container in looting mode.
+     *               See {@link Status} for more information.
+     */
     default void open(Status status) {
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerInteractionManager interactionManager = client.interactionManager;
@@ -51,6 +63,9 @@ public interface QuickLootContainer {
         interactionManager.sendSequencedPacket(world, i -> new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, blockHitResult, i));
     }
 
+    /**
+     * @return true if this container is the current quick loot container, false otherwise.
+     */
     default boolean notCurrent() {
         PlayerEntityExtender player = (PlayerEntityExtender) MinecraftClient.getInstance().player;
         if (player == null) return true;
@@ -63,6 +78,9 @@ public interface QuickLootContainer {
         return true;
     }
 
+    /**
+     * Handles the closing of this container.
+     */
     default void close() {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if (player == null) return;
@@ -71,10 +89,20 @@ public interface QuickLootContainer {
         ((PlayerEntityExtender) player).setStatus(Status.IDLE);
     }
 
+    /**
+     * Used to determine if the client should send an open request to the server.
+     * See {@link ChestBlockEntityMixin#canOpen} for an example implementation.
+     * @return true if this container can be opened, false otherwise.
+     */
     default boolean canOpen() {
         return true;
     }
 
+    /**
+     * Requests the server to move the item in the specified slot to the player's inventory.
+     * This is done via a click slot packet with {@link SlotActionType#QUICK_MOVE}.
+     * @param slot The slot to move the item from.
+     */
     default void requestStack(int slot) {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(player == null) return;

@@ -42,17 +42,17 @@ public abstract class EventManager {
         assert client.world != null;
         BlockPos blockPos = hitResult.getBlockPos();
         BlockEntity blockEntity = client.world.getBlockEntity(blockPos);
-        if(!(blockEntity instanceof QuickLootContainer quickLootContainer)) {
+        if(!(blockEntity instanceof QuickLootContainer container)) {
             player.setQuickLootContainer(null);
             return;
         }
 
-        boolean newContainer = quickLootContainer.setAsCurrent();
+        boolean newContainer = container.setAsCurrent();
         if(player.getStatus().isPaused()) return;
 
         if (newContainer) {
-            if(quickLootContainer.canOpen()) {
-                quickLootContainer.open(Status.PREVIEWING);
+            if(container.canOpen()) {
+                container.open(Status.PREVIEWING);
                 QuickLootClient.getPreviewWidget().start();
             } else {
                 QuickLootClient.getPreviewWidget().setBlocked(true);
@@ -67,16 +67,16 @@ public abstract class EventManager {
 
     private static void handleEntityTarget(PlayerEntityExtender player, MatrixStack matricies, EntityHitResult hitResult) {
         Entity entity = hitResult.getEntity();
-        if(!(entity instanceof EntityQuickLootContainer containerExtender)) {
+        if(!(entity instanceof EntityQuickLootContainer container)) {
             player.setQuickLootContainer(null);
             return;
         }
 
-        boolean newContainer = containerExtender.setAsCurrent();
+        boolean newContainer = container.setAsCurrent();
         if(player.getStatus().isPaused()) return;
 
         if (newContainer) {
-            containerExtender.open(Status.PREVIEWING);
+            container.open(Status.PREVIEWING);
             QuickLootClient.getPreviewWidget().start();
             return;
         }

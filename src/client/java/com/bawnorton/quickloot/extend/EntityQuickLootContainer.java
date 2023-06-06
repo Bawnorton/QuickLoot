@@ -12,6 +12,14 @@ import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.util.hit.HitResult;
 
 public interface EntityQuickLootContainer extends QuickLootContainer {
+    /**
+     * Handles the opening of this container.
+     * Overridden to open the container as an entity.
+     * @param status Controls the behavior of how the container is opened.
+     *               PREVIEWING: Opens the container in preview mode.
+     *               LOOTING: Opens the container in looting mode.
+     *               See {@link Status} for more information.
+     */
     @Override
     default void open(Status status) {
         MinecraftClient client = MinecraftClient.getInstance();
