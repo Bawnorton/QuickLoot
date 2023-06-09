@@ -17,31 +17,13 @@ public abstract class HandledScreenMixin {
 
     @Inject(method = "init", at = @At("HEAD"))
     private void onInit(CallbackInfo ci) {
-        PlayerEntityExtender player = (PlayerEntityExtender) MinecraftClient.getInstance().player;
-        if(player == null) return;
-
-        if(player.getStatus().isIdle()) {
-            player.setStatus(Status.PAUSED);
-        }
     }
 
     @Inject(method = "render", at = @At("HEAD"), cancellable = true)
     private void onRender(MatrixStack matrices, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        PlayerEntityExtender player = (PlayerEntityExtender) MinecraftClient.getInstance().player;
-        if(player == null) return;
-
-        if(player.getStatus().doesReadContainer()) {
-            close();
-            ci.cancel();
-        }
     }
 
     @Inject(method = "close", at = @At("HEAD"))
     private void onClose(CallbackInfo ci) {
-        PlayerEntityExtender player = (PlayerEntityExtender) MinecraftClient.getInstance().player;
-        if(player == null) return;
-
-        player.setStatus(Status.IDLE);
-        player.getQuickLootContainer().ifPresent(container -> container.open(Status.PREVIEWING));
     }
 }

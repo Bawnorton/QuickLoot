@@ -5,8 +5,7 @@ import com.bawnorton.quickloot.extend.PlayerEntityExtender;
 import com.bawnorton.quickloot.extend.QuickLootContainer;
 import com.bawnorton.quickloot.extend.QuickLootEntityContainer;
 import com.bawnorton.quickloot.keybind.KeybindManager;
-import com.bawnorton.quickloot.render.screen.QuickLootPreviewWidget;
-import com.bawnorton.quickloot.util.ContainerStatus;
+import com.bawnorton.quickloot.render.screen.QuickLootWidget;
 import com.bawnorton.quickloot.util.Status;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -32,6 +31,7 @@ public abstract class EventManager {
 
     public static void init() {
         HudRenderCallback.EVENT.register((matricies, tickDelta) -> {
+            if(!QuickLootClient.isEnabled()) return;
             PlayerEntityExtender player = (PlayerEntityExtender) client.player;
             if(player == null) return;
             if(client.world == null) return;
@@ -64,18 +64,18 @@ public abstract class EventManager {
 
         if (newContainer) {
             if(container.canOpen()) {
-                QuickLootClient.getPreviewWidget().start();
-                QuickLootClient.getPreviewWidget().resetStatus();
+                QuickLootWidget.getInstance().start();
+                QuickLootWidget.getInstance().resetStatus();
                 container.open(Status.PREVIEWING);
             } else {
-                QuickLootClient.getPreviewWidget().block();
+                QuickLootWidget.getInstance().block();
             }
             return;
         }
 
         BlockState state = client.world.getBlockState(blockPos);
         String containerName = state.getBlock().getName().getString();
-        QuickLootClient.getPreviewWidget().render(matricies, containerName);
+        QuickLootWidget.getInstance().render(matricies, containerName);
     }
 
     private static void handleEntityTarget(PlayerEntityExtender player, MatrixStack matricies, EntityHitResult hitResult) {
@@ -88,8 +88,8 @@ public abstract class EventManager {
         assert MinecraftClient.getInstance().player != null;
         boolean newContainer = container.setAsCurrent();
         boolean sneaking = MinecraftClient.getInstance().player.isSneaking();
-        QuickLootPreviewWidget previewWidget = QuickLootClient.getPreviewWidget();
-        if(entity instanceof ChestBoatEntity && !sneaking) previewWidget.setStatus(ContainerStatus.REQUIRES_SNEAKING);
+        QuickLootWidget previewWidget = QuickLootWidget.getInstance();
+        if(entity instanceof ChestBoatEntity && !sneaking) previewWidget.getStatus().setRequiresSneaking(true);
         if(player.getStatus().isPaused()) return;
 
         if (newContainer || (previewWidget.requiresSneaking() && sneaking)) {
@@ -100,7 +100,7 @@ public abstract class EventManager {
         }
 
         String containerName = entity.getType().getName().getString();
-        QuickLootClient.getPreviewWidget().render(matricies, containerName);
+        QuickLootWidget.getInstance().render(matricies, containerName);
     }
 
     private static void handleCampfireTarget(MatrixStack matricies, CampfireBlockEntity campfire) {
@@ -109,8 +109,8 @@ public abstract class EventManager {
         for(ItemStack item : items) {
             slotMap.put(item, slotMap.getOrDefault(item, 0) + 1);
         }
-        QuickLootPreviewWidget previewWidget = QuickLootClient.getPreviewWidget();
-        previewWidget.setStatus(ContainerStatus.NO_HINT);
+        QuickLootWidget previewWidget = QuickLootWidget.getInstance();
+        previewWidget.getStatus().disableHints();
         previewWidget.updateItems(slotMap);
         previewWidget.start();
         previewWidget.render(matricies, "Campfire");

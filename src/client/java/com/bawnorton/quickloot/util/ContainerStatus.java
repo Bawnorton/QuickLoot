@@ -2,61 +2,84 @@ package com.bawnorton.quickloot.util;
 
 /**
  * Represents the status of a container.
- * Used to determine how the container should be displayed.
- * Use methods to check the status of the container instead of comparing directly.
+ * Used to determine how the quick loot ui should be displayed.
  */
-public enum ContainerStatus {
-    NORMAL, // Normal
-    EMPTY, // No items
-    NO_HINT, // Don't display hint
-    NO_HINT_EMPTY, // Don't display hint, no items
-    NO_TAKE_HINT, // Don't display take hint, can still open
-    BLOCKED, // Can't open, also don't display hint
-    REQUIRES_SNEAKING; // Requires sneaking, also don't display hint
+public class ContainerStatus {
+    private boolean isBlocked;
+    private boolean isEmpty;
+    private boolean requiresSneaking;
+    private boolean hasOpenHint;
+    private boolean hasTakeHint;
 
-    /**
-     * @return true if the container is in a state where it has items and can be opened.
-     */
-    public boolean isNormal() {
-        return this == NORMAL || this == NO_HINT || this == NO_TAKE_HINT;
+    public ContainerStatus(boolean isBlocked, boolean isEmpty, boolean requiresSneaking, boolean hasOpenHint, boolean hasTakeHint) {
+        this.isBlocked = isBlocked;
+        this.isEmpty = isEmpty;
+        this.requiresSneaking = requiresSneaking;
+        this.hasOpenHint = hasOpenHint;
+        this.hasTakeHint = hasTakeHint;
     }
 
-    /**
-     * @return true if the container is in a state where it can't be opened.
-     */
+    public static ContainerStatus normal() {
+        return new ContainerStatus(false, false, false, true, true);
+    }
+
+    public void setBlocked(boolean blocked) {
+        if(blocked) disableHints();
+        isBlocked = blocked;
+    }
+
+    public void setEmpty(boolean empty) {
+        if(empty) hasTakeHint = false;
+        isEmpty = empty;
+    }
+
+    public void setRequiresSneaking(boolean requiresSneaking) {
+        if(requiresSneaking) disableHints();
+        this.requiresSneaking = requiresSneaking;
+    }
+
+    public void disableHints() {
+        hasOpenHint = false;
+        hasTakeHint = false;
+    }
+
     public boolean isBlocked() {
-        return this == BLOCKED;
+        return isBlocked;
     }
 
-    /**
-     * @return true if the container is in a state where it can be opened but has no items.
-     */
     public boolean isEmpty() {
-        return this == EMPTY || this == NO_HINT_EMPTY;
+        return isEmpty;
     }
 
-    /**
-     * @return true if the container is in a state where it either is blocked or is forced to display no hint.
-     * Note: This does not include the {@link #NO_TAKE_HINT} state.
-     */
-    public boolean isNoHint() {
-        return this == NO_HINT || this == NO_HINT_EMPTY || this == REQUIRES_SNEAKING || this == BLOCKED;
+    public boolean requiresSneaking() {
+        return requiresSneaking;
     }
 
+    public boolean hasOpenHint() {
+        return hasOpenHint;
+    }
 
-    /**
-     * @return true if the container is in a state where it is forced to display no take hint.
-     */
-    public boolean isNoTakeHint() {
-        return this == NO_TAKE_HINT || isEmpty();
+    public boolean hasTakeHint() {
+        return hasTakeHint;
+    }
+
+    public boolean hasHint() {
+        return hasOpenHint || hasTakeHint;
+    }
+
+    public boolean isNormal() {
+        return !(isBlocked || isEmpty || requiresSneaking);
     }
 
     public String getText() {
-        return switch (this) {
-            case EMPTY, NO_HINT_EMPTY -> "Empty";
-            case BLOCKED -> "Blocked";
-            case REQUIRES_SNEAKING -> "Requires Sneaking";
-            default -> "-Error-";
-        };
+        if(isBlocked) {
+            return "Blocked";
+        } else if(requiresSneaking) {
+            return "Requires Sneaking";
+        } else if(isEmpty) {
+            return "Empty";
+        } else {
+            return "";
+        }
     }
 }

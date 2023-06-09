@@ -7,10 +7,6 @@ public enum Status {
     IDLE, // The player is not interacting with a container
     PAUSED; // The player is inside a container
 
-    public boolean isIdle() {
-        return this == IDLE;
-    }
-
     public boolean isPaused() {
         return this == PAUSED;
     }

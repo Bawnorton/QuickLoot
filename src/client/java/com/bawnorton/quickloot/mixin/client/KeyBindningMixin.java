@@ -14,7 +14,7 @@ public abstract class KeyBindningMixin {
     private static void onUnpressAll(CallbackInfo ci) {
         PlayerEntityExtender player = (PlayerEntityExtender) MinecraftClient.getInstance().player;
         if(player == null) return;
-        if(!player.getStatus().isIdle()) {
+        if(player.getStatus().doesReadContainer()) {
             ci.cancel();
         }
     }

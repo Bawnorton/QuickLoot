@@ -1,9 +1,8 @@
 package com.bawnorton.quickloot.mixin.client;
 
-import com.bawnorton.quickloot.QuickLootClient;
-import com.bawnorton.quickloot.extend.QuickLootContainer;
 import com.bawnorton.quickloot.extend.PlayerEntityExtender;
-import com.bawnorton.quickloot.keybind.KeybindManager;
+import com.bawnorton.quickloot.extend.QuickLootContainer;
+import com.bawnorton.quickloot.render.screen.QuickLootWidget;
 import com.bawnorton.quickloot.util.Status;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
@@ -40,10 +39,6 @@ public abstract class ClientPlayNetworkHandlerMixin {
         QuickLootContainer container = optional.orElse(null);
         if(container == null) return;
 
-        if(playerExtender.getStatus().isPaused() && !KeybindManager.checkContainerSync()) {
-            playerExtender.setStatus(Status.PREVIEWING); // fix for containers opening when they shouldn't
-        }
-
         switch (playerExtender.getStatus()) {
             case PREVIEWING -> {
                 List<ItemStack> stacks = packet.getContents();
@@ -52,10 +47,10 @@ public abstract class ClientPlayNetworkHandlerMixin {
                 for(int i = 0; i < stacks.size(); i++) {
                     stackSlotMap.put(stacks.get(i), i);
                 }
-                QuickLootClient.getPreviewWidget().updateItems(stackSlotMap);
+                QuickLootWidget.getInstance().updateItems(stackSlotMap);
                 container.close();
             }
-            case LOOTING -> QuickLootClient.getPreviewWidget().getSelectedItem().ifPresent((stack, slot) -> {
+            case LOOTING -> QuickLootWidget.getInstance().getSelectedItem().ifPresent((stack, slot) -> {
                 if(stack.isEmpty()) return;
 
                 container.requestStack(slot);
@@ -95,8 +90,8 @@ public abstract class ClientPlayNetworkHandlerMixin {
         if(player == null) return;
 
         player.getQuickLootContainer().ifPresent(container -> {
-            if(container.canOpen() && QuickLootClient.getPreviewWidget().isBlocked()) {
-                QuickLootClient.getPreviewWidget().resetStatus();
+            if(container.canOpen() && QuickLootWidget.getInstance().isBlocked()) {
+                QuickLootWidget.getInstance().resetStatus();
                 container.open(Status.PREVIEWING);
             }
         });
