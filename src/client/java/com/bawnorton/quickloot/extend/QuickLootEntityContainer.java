@@ -1,6 +1,6 @@
 package com.bawnorton.quickloot.extend;
 
-import com.bawnorton.quickloot.util.Status;
+import com.bawnorton.quickloot.util.PlayerStatus;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
@@ -15,13 +15,13 @@ public interface QuickLootEntityContainer extends QuickLootContainer {
     /**
      * Handles the opening of this container.
      * Overridden to open the container as an entity.
-     * @param status Controls the behavior of how the container is opened.
+     * @param playerStatus Controls the behavior of how the container is opened.
      *               PREVIEWING: Opens the container in preview mode.
      *               LOOTING: Opens the container in looting mode.
-     *               See {@link Status} for more information.
+     *               See {@link PlayerStatus} for more information.
      */
     @Override
-    default void open(Status status) {
+    default void open(PlayerStatus playerStatus) {
         if(!canOpen()) return;
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerInteractionManager interactionManager = client.interactionManager;
@@ -40,7 +40,7 @@ public interface QuickLootEntityContainer extends QuickLootContainer {
         ClientPlayerEntity player = client.player;
         if (player == null) return;
 
-        ((PlayerEntityExtender) player).setStatus(status);
+        ((PlayerEntityExtender) player).setStatus(playerStatus);
         interactionManager.sendSequencedPacket(world, i -> PlayerInteractEntityC2SPacket.interact(entity, player.isSneaking(), Hand.MAIN_HAND));
     }
 }

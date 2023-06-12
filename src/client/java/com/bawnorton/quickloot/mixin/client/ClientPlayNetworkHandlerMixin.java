@@ -1,9 +1,10 @@
 package com.bawnorton.quickloot.mixin.client;
 
+import com.bawnorton.quickloot.event.EventManager;
 import com.bawnorton.quickloot.extend.PlayerEntityExtender;
 import com.bawnorton.quickloot.extend.QuickLootContainer;
 import com.bawnorton.quickloot.render.screen.QuickLootWidget;
-import com.bawnorton.quickloot.util.Status;
+import com.bawnorton.quickloot.util.PlayerStatus;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -31,6 +32,11 @@ public abstract class ClientPlayNetworkHandlerMixin {
 
     @Inject(method = "onInventory", at = @At(value = "INVOKE", target = "Lnet/minecraft/screen/ScreenHandler;updateSlotStacks(ILjava/util/List;Lnet/minecraft/item/ItemStack;)V"))
     private void readInventory(InventoryS2CPacket packet, CallbackInfo ci) {
+        if(EventManager.isPaused()) {
+            EventManager.pause();
+            return;
+        }
+
         ClientPlayerEntity player = client.player;
         if(player == null) return;
 
@@ -47,6 +53,7 @@ public abstract class ClientPlayNetworkHandlerMixin {
                 for(int i = 0; i < stacks.size(); i++) {
                     stackSlotMap.put(stacks.get(i), i);
                 }
+
                 QuickLootWidget.getInstance().updateItems(stackSlotMap);
                 container.close();
             }
@@ -55,7 +62,7 @@ public abstract class ClientPlayNetworkHandlerMixin {
 
                 container.requestStack(slot);
                 container.close();
-                container.open(Status.PREVIEWING);
+                container.open(PlayerStatus.PREVIEWING);
             });
             case IDLE -> container.close();
         }
@@ -81,7 +88,7 @@ public abstract class ClientPlayNetworkHandlerMixin {
         PlayerEntityExtender player = (PlayerEntityExtender) client.player;
         if(player == null) return;
 
-        player.getQuickLootContainer().ifPresent(container -> container.open(Status.PREVIEWING));
+        player.getQuickLootContainer().ifPresent(container -> container.open(PlayerStatus.PREVIEWING));
     }
 
     @Inject(method = "onBlockUpdate", at = @At("TAIL"))
@@ -92,7 +99,7 @@ public abstract class ClientPlayNetworkHandlerMixin {
         player.getQuickLootContainer().ifPresent(container -> {
             if(container.canOpen() && QuickLootWidget.getInstance().isBlocked()) {
                 QuickLootWidget.getInstance().resetStatus();
-                container.open(Status.PREVIEWING);
+                container.open(PlayerStatus.PREVIEWING);
             }
         });
     }

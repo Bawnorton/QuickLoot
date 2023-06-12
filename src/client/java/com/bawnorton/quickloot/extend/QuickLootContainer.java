@@ -1,12 +1,15 @@
 package com.bawnorton.quickloot.extend;
 
+import com.bawnorton.quickloot.keybind.KeybindManager;
 import com.bawnorton.quickloot.mixin.client.ChestBlockEntityMixin;
-import com.bawnorton.quickloot.util.Status;
+import com.bawnorton.quickloot.util.PlayerStatus;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Hand;
@@ -36,12 +39,12 @@ public interface QuickLootContainer {
 
     /**
      * Handles the opening of this container.
-     * @param status Controls the behavior of how the container is opened.
+     * @param playerStatus Controls the behavior of how the container is opened.
      *               PREVIEWING: Opens the container in preview mode.
      *               LOOTING: Opens the container in looting mode.
-     *               See {@link Status} for more information.
+     *               See {@link PlayerStatus} for more information.
      */
-    default void open(Status status) {
+    default void open(PlayerStatus playerStatus) {
         if(!canOpen()) return;
         MinecraftClient client = MinecraftClient.getInstance();
         ClientPlayerInteractionManager interactionManager = client.interactionManager;
@@ -60,8 +63,21 @@ public interface QuickLootContainer {
         ClientPlayerEntity player = client.player;
         if (player == null) return;
 
-        ((PlayerEntityExtender) player).setStatus(status);
+        ((PlayerEntityExtender) player).setStatus(playerStatus);
+
+        boolean reSneak = false;
+        ClientPlayNetworkHandler networkHandler = client.getNetworkHandler();
+        assert networkHandler != null;
+        if(player.isSneaking()) {
+            KeybindManager.unpressSneak();
+            networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY));
+            reSneak = true;
+        }
         interactionManager.sendSequencedPacket(world, i -> new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, blockHitResult, i));
+        if(reSneak) {
+            KeybindManager.pressSneak();
+            networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));
+        }
     }
 
     /**
@@ -87,7 +103,7 @@ public interface QuickLootContainer {
         if (player == null) return;
 
         player.closeHandledScreen();
-        ((PlayerEntityExtender) player).setStatus(Status.IDLE);
+        ((PlayerEntityExtender) player).setStatus(PlayerStatus.IDLE);
     }
 
     /**

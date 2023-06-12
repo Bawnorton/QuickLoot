@@ -5,9 +5,11 @@ import com.bawnorton.quickloot.extend.PlayerEntityExtender;
 import com.bawnorton.quickloot.extend.QuickLootContainer;
 import com.bawnorton.quickloot.extend.QuickLootEntityContainer;
 import com.bawnorton.quickloot.keybind.KeybindManager;
+import com.bawnorton.quickloot.networking.client.Networking;
 import com.bawnorton.quickloot.render.screen.QuickLootWidget;
-import com.bawnorton.quickloot.util.Status;
+import com.bawnorton.quickloot.util.PlayerStatus;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -28,10 +30,11 @@ import java.util.Map;
 
 public abstract class EventManager {
     private static final MinecraftClient client = MinecraftClient.getInstance();
+    private static boolean quicklootPaused = false;
 
     public static void init() {
         HudRenderCallback.EVENT.register((matricies, tickDelta) -> {
-            if(!QuickLootClient.isEnabled()) return;
+            if(isPaused() || !QuickLootClient.enabled) return;
             PlayerEntityExtender player = (PlayerEntityExtender) client.player;
             if(player == null) return;
             if(client.world == null) return;
@@ -45,6 +48,11 @@ public abstract class EventManager {
         });
 
         ClientTickEvents.END_CLIENT_TICK.register((client) -> KeybindManager.handleKeybinds());
+
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+            QuickLootClient.installedOnServer = false;
+            Networking.sendHandshakePacket();
+        });
     }
 
     private static void handleBlockTarget(PlayerEntityExtender player, MatrixStack matricies, BlockHitResult hitResult) {
@@ -59,14 +67,11 @@ public abstract class EventManager {
             return;
         }
 
-        boolean newContainer = container.setAsCurrent();
-        if(player.getStatus().isPaused()) return;
-
-        if (newContainer) {
+        if (container.setAsCurrent()) {
             if(container.canOpen()) {
                 QuickLootWidget.getInstance().start();
                 QuickLootWidget.getInstance().resetStatus();
-                container.open(Status.PREVIEWING);
+                container.open(PlayerStatus.PREVIEWING);
             } else {
                 QuickLootWidget.getInstance().block();
             }
@@ -90,19 +95,16 @@ public abstract class EventManager {
         boolean sneaking = MinecraftClient.getInstance().player.isSneaking();
         QuickLootWidget previewWidget = QuickLootWidget.getInstance();
         if(entity instanceof ChestBoatEntity && !sneaking) previewWidget.getStatus().setRequiresSneaking(true);
-        if(player.getStatus().isPaused()) return;
-
         if (newContainer || (previewWidget.requiresSneaking() && sneaking)) {
             previewWidget.start();
             previewWidget.resetStatus();
-            container.open(Status.PREVIEWING);
+            container.open(PlayerStatus.PREVIEWING);
             return;
         }
 
         String containerName = entity.getType().getName().getString();
         QuickLootWidget.getInstance().render(matricies, containerName);
     }
-
     private static void handleCampfireTarget(MatrixStack matricies, CampfireBlockEntity campfire) {
         List<ItemStack> items = campfire.getItemsBeingCooked();
         Map<ItemStack, Integer> slotMap = new HashMap<>();
@@ -110,10 +112,24 @@ public abstract class EventManager {
             slotMap.put(item, slotMap.getOrDefault(item, 0) + 1);
         }
         QuickLootWidget previewWidget = QuickLootWidget.getInstance();
+        previewWidget.resetStatus();
         previewWidget.getStatus().disableHints();
         previewWidget.updateItems(slotMap);
         previewWidget.start();
         previewWidget.render(matricies, "Campfire");
+    }
+
+
+    public static boolean isPaused() {
+        return quicklootPaused;
+    }
+
+    public static void pause() {
+        quicklootPaused = false;
+    }
+
+    public static void resume() {
+        quicklootPaused = true;
     }
 }
 

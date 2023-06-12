@@ -98,7 +98,12 @@ public class QuickLootWidget {
         shownRows = (shownHeight - 4) / ROW_HEIGHT;
     }
 
+    private boolean shouldRender() {
+        return MinecraftClient.getInstance().currentScreen == null;
+    }
+
     public void render(MatrixStack matricies, String title) {
+        if(!shouldRender()) return;
         refresh();
         matricies.push();
         matricies.translate(0, 0, 500);
@@ -119,7 +124,7 @@ public class QuickLootWidget {
             int count = stack.getCount();
             String name = stack.getName().getString();
             int yOffset = (row - scrollOffset) * ROW_HEIGHT + 4;
-            if(row == selected && !status.hasTakeHint()) {
+            if(row == selected && status.hasTakeHint()) {
                 RenderHelper.drawArea(matricies, x + X_OFFSET + 4, y + yOffset, WIDTH - 8, ROW_HEIGHT - 2, 0x55FFFFFF);
             }
             RenderHelper.drawItem(matricies, stack, x + X_OFFSET + 4, y + yOffset);

@@ -2,7 +2,7 @@ package com.bawnorton.quickloot.mixin.client;
 
 import com.bawnorton.quickloot.extend.PlayerEntityExtender;
 import com.bawnorton.quickloot.extend.QuickLootContainer;
-import com.bawnorton.quickloot.util.Status;
+import com.bawnorton.quickloot.util.PlayerStatus;
 import net.minecraft.entity.player.PlayerEntity;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,7 +16,7 @@ public abstract class PlayerEntityMixin implements PlayerEntityExtender {
     private QuickLootContainer quickLootContainer;
 
     @Unique
-    private Status status = Status.IDLE;
+    private PlayerStatus playerStatus = PlayerStatus.IDLE;
 
     @Override
     public Optional<QuickLootContainer> getQuickLootContainer() {
@@ -29,12 +29,12 @@ public abstract class PlayerEntityMixin implements PlayerEntityExtender {
     }
 
     @Override
-    public Status getStatus() {
-        return status;
+    public PlayerStatus getStatus() {
+        return playerStatus;
     }
 
     @Override
-    public void setStatus(Status status) {
-        this.status = status;
+    public void setStatus(PlayerStatus playerStatus) {
+        this.playerStatus = playerStatus;
     }
 }

@@ -1,15 +1,10 @@
 package com.bawnorton.quickloot.util;
 
-public enum Status {
+public enum PlayerStatus {
     // Player Statuses (Used to determine how the player interacts with the container)
     LOOTING, // Loot the container's selected slot
     PREVIEWING, // Read the container's contents
-    IDLE, // The player is not interacting with a container
-    PAUSED; // The player is inside a container
-
-    public boolean isPaused() {
-        return this == PAUSED;
-    }
+    IDLE; // The player is not interacting with a container
 
     public boolean isPreviewing() {
         return this == PREVIEWING;

@@ -1,12 +1,12 @@
 package com.bawnorton.quickloot.extend;
 
-import com.bawnorton.quickloot.util.Status;
+import com.bawnorton.quickloot.util.PlayerStatus;
 
 import java.util.Optional;
 
 public interface PlayerEntityExtender {
     Optional<QuickLootContainer> getQuickLootContainer();
     void setQuickLootContainer(QuickLootContainer container);
-    Status getStatus();
-    void setStatus(Status status);
+    PlayerStatus getStatus();
+    void setStatus(PlayerStatus playerStatus);
 }

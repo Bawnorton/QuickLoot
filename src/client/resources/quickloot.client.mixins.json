@@ -3,15 +3,18 @@
   "package": "com.bawnorton.quickloot.mixin.client",
   "compatibilityLevel": "JAVA_17",
   "client": [
+    "BlockEntityMixin",
     "ChestBlockEntityMixin",
     "ChestBoatEntityMixin",
     "ChestMinecartEntityMixin",
+    "ClientPlayerInteractionManagerMixin",
     "ClientPlayNetworkHandlerMixin",
     "EnderChestBlockEntityMixin",
     "HandledScreenMixin",
     "HopperMinecartEntityMixin",
     "KeyBindningMixin",
     "LockableContainerBlockEntityMixin",
+    "MinecraftClientMixin",
     "PlayerEntityMixin",
     "ShulkerBlockEntityMixin"
   ],
@@ -19,6 +22,5 @@
     "defaultRequire": 1
   },
   "mixins": [
-    "BlockEntityMixin"
   ]
 }
