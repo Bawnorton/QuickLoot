@@ -38,4 +38,13 @@ public class OptionalStackSlot {
             consumer.accept(stackSlot.getLeft().get(), stackSlot.getRight().get());
         }
     }
+
+    public Integer getSlot() {
+        if(isPresent()) {
+            assert stackSlot != null : "Unreachable";
+            assert stackSlot.getRight().isPresent() : "Unreachable";
+            return stackSlot.getRight().get();
+        }
+        return null;
+    }
 }

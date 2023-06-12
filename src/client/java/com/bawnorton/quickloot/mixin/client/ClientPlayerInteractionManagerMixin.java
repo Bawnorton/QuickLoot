@@ -20,14 +20,14 @@ public abstract class ClientPlayerInteractionManagerMixin {
     @Inject(method = "interactBlock", at = @At("RETURN"))
     private void onInteractBlock(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir) {
         if (cir.getReturnValue().isAccepted() && player.world.getBlockEntity(hitResult.getBlockPos()) instanceof QuickLootContainer container && container.canOpen()) {
-            EventManager.resume();
+            EventManager.pause();
         }
     }
 
     @Inject(method = "interactEntity", at = @At("RETURN"))
     private void onInteractEntity(PlayerEntity player, Entity entity, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
         if (cir.getReturnValue().isAccepted() && entity instanceof QuickLootEntityContainer container && container.canOpen()) {
-            EventManager.resume();
+            EventManager.pause();
         }
     }
 }

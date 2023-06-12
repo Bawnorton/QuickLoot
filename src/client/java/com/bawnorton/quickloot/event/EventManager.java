@@ -60,6 +60,7 @@ public abstract class EventManager {
         BlockPos blockPos = hitResult.getBlockPos();
         BlockEntity blockEntity = client.world.getBlockEntity(blockPos);
         if(!(blockEntity instanceof QuickLootContainer container)) {
+            player.getQuickLootContainer().ifPresent(QuickLootContainer::close);
             player.setQuickLootContainer(null);
             if(blockEntity instanceof CampfireBlockEntity campfire) {
                 handleCampfireTarget(matricies, campfire);
@@ -86,6 +87,7 @@ public abstract class EventManager {
     private static void handleEntityTarget(PlayerEntityExtender player, MatrixStack matricies, EntityHitResult hitResult) {
         Entity entity = hitResult.getEntity();
         if(!(entity instanceof QuickLootEntityContainer container)) {
+            player.getQuickLootContainer().ifPresent(QuickLootContainer::close);
             player.setQuickLootContainer(null);
             return;
         }
@@ -124,11 +126,11 @@ public abstract class EventManager {
         return quicklootPaused;
     }
 
-    public static void pause() {
+    public static void resume() {
         quicklootPaused = false;
     }
 
-    public static void resume() {
+    public static void pause() {
         quicklootPaused = true;
     }
 }

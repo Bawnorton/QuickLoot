@@ -15,7 +15,10 @@
     "KeyBindningMixin",
     "LockableContainerBlockEntityMixin",
     "MinecraftClientMixin",
+    "MouseMixin",
+    "ParentElementMixin",
     "PlayerEntityMixin",
+    "ScreenMixin",
     "ShulkerBlockEntityMixin"
   ],
   "injectors": {
