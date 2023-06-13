@@ -1,5 +1,6 @@
 package com.bawnorton.quickloot.extend;
 
+import com.bawnorton.quickloot.networking.client.Networking;
 import com.bawnorton.quickloot.util.PlayerStatus;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -42,5 +43,10 @@ public interface QuickLootEntityContainer extends QuickLootContainer {
 
         ((PlayerEntityExtender) player).setStatus(playerStatus);
         interactionManager.sendSequencedPacket(world, i -> PlayerInteractEntityC2SPacket.interact(entity, player.isSneaking(), Hand.MAIN_HAND));
+    }
+
+    @Override
+    default void serverOpen() {
+        Networking.requestEntityInventory((Entity) this);
     }
 }

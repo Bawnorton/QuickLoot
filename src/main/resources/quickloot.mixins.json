@@ -3,6 +3,8 @@
 	"package": "com.bawnorton.quickloot.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
+		"ChestBoatEntityMixin",
+		"StorageMinecartEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

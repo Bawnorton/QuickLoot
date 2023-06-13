@@ -1,6 +1,7 @@
 package com.bawnorton.quickloot.mixin.client;
 
 import com.bawnorton.quickloot.extend.QuickLootContainer;
+import com.bawnorton.quickloot.networking.client.Networking;
 import net.minecraft.block.ChestBlock;
 import net.minecraft.block.entity.EnderChestBlockEntity;
 import net.minecraft.world.World;
@@ -14,5 +15,10 @@ public abstract class EnderChestBlockEntityMixin extends BlockEntityMixin implem
         if(world == null) return false;
 
         return !ChestBlock.isChestBlocked(world, getPos());
+    }
+
+    @Override
+    public void serverOpen() {
+        Networking.requestInventory(getPos());
     }
 }

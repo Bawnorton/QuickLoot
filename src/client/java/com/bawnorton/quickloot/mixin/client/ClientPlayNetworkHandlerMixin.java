@@ -1,5 +1,6 @@
 package com.bawnorton.quickloot.mixin.client;
 
+import com.bawnorton.quickloot.QuickLootClient;
 import com.bawnorton.quickloot.event.EventManager;
 import com.bawnorton.quickloot.extend.PlayerEntityExtender;
 import com.bawnorton.quickloot.extend.QuickLootContainer;
@@ -32,6 +33,7 @@ public abstract class ClientPlayNetworkHandlerMixin {
 
     @Inject(method = "onInventory", at = @At(value = "INVOKE", target = "Lnet/minecraft/screen/ScreenHandler;updateSlotStacks(ILjava/util/List;Lnet/minecraft/item/ItemStack;)V"))
     private void readInventory(InventoryS2CPacket packet, CallbackInfo ci) {
+        if(QuickLootClient.installedOnServer) return;
         if(EventManager.isPaused()) {
             EventManager.pause();
             return;

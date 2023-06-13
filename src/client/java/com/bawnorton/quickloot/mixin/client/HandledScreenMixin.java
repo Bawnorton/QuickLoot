@@ -18,8 +18,6 @@ public abstract class HandledScreenMixin {
         if(player == null) return;
 
         QuickLootWidget.getInstance().resetStatus();
-        player.getQuickLootContainer().ifPresent(container -> {
-            container.open(PlayerStatus.PREVIEWING);
-        });
+        player.getQuickLootContainer().ifPresent(container -> container.open(PlayerStatus.PREVIEWING));
     }
 }

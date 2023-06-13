@@ -1,7 +1,10 @@
 package com.bawnorton.quickloot.extend;
 
+import com.bawnorton.quickloot.QuickLootClient;
 import com.bawnorton.quickloot.keybind.KeybindManager;
 import com.bawnorton.quickloot.mixin.client.ChestBlockEntityMixin;
+import com.bawnorton.quickloot.networking.client.Networking;
+import com.bawnorton.quickloot.render.screen.QuickLootWidget;
 import com.bawnorton.quickloot.util.PlayerStatus;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.MinecraftClient;
@@ -38,6 +41,21 @@ public interface QuickLootContainer {
     }
 
     /**
+     * @return true if this container is the current quick loot container, false otherwise.
+     */
+    default boolean notCurrent() {
+        PlayerEntityExtender player = (PlayerEntityExtender) MinecraftClient.getInstance().player;
+        if (player == null) return true;
+
+        Optional<QuickLootContainer> quickLootContainer = player.getQuickLootContainer();
+        if (quickLootContainer.isPresent()) {
+            QuickLootContainer container = quickLootContainer.get();
+            return container != this;
+        }
+        return true;
+    }
+
+    /**
      * Handles the opening of this container.
      * @param playerStatus Controls the behavior of how the container is opened.
      *               PREVIEWING: Opens the container in preview mode.
@@ -65,33 +83,31 @@ public interface QuickLootContainer {
 
         ((PlayerEntityExtender) player).setStatus(playerStatus);
 
-        boolean reSneak = false;
-        ClientPlayNetworkHandler networkHandler = client.getNetworkHandler();
-        assert networkHandler != null;
-        if(player.isSneaking()) {
-            KeybindManager.unpressSneak();
-            networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY));
-            reSneak = true;
-        }
-        interactionManager.sendSequencedPacket(world, i -> new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, blockHitResult, i));
-        if(reSneak) {
-            KeybindManager.pressSneak();
-            networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));
+        if(QuickLootClient.installedOnServer) {
+            serverOpen();
+        } else {
+            boolean reSneak = false;
+            ClientPlayNetworkHandler networkHandler = client.getNetworkHandler();
+            assert networkHandler != null;
+            if(player.isSneaking()) {
+                KeybindManager.unpressSneak();
+                networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.RELEASE_SHIFT_KEY));
+                reSneak = true;
+            }
+            interactionManager.sendSequencedPacket(world, i -> new PlayerInteractBlockC2SPacket(Hand.MAIN_HAND, blockHitResult, i));
+            if(reSneak) {
+                KeybindManager.pressSneak();
+                networkHandler.sendPacket(new ClientCommandC2SPacket(player, ClientCommandC2SPacket.Mode.PRESS_SHIFT_KEY));
+            }
         }
     }
 
     /**
-     * @return true if this container is the current quick loot container, false otherwise.
+     * Used to determine if the client should send an open request to the server.
+     * See {@link ChestBlockEntityMixin#canOpen} for an example implementation.
+     * @return true if this container can be opened, false otherwise.
      */
-    default boolean notCurrent() {
-        PlayerEntityExtender player = (PlayerEntityExtender) MinecraftClient.getInstance().player;
-        if (player == null) return true;
-
-        Optional<QuickLootContainer> quickLootContainer = player.getQuickLootContainer();
-        if (quickLootContainer.isPresent()) {
-            QuickLootContainer container = quickLootContainer.get();
-            return container != this;
-        }
+    default boolean canOpen() {
         return true;
     }
 
@@ -106,14 +122,6 @@ public interface QuickLootContainer {
         ((PlayerEntityExtender) player).setStatus(PlayerStatus.IDLE);
     }
 
-    /**
-     * Used to determine if the client should send an open request to the server.
-     * See {@link ChestBlockEntityMixin#canOpen} for an example implementation.
-     * @return true if this container can be opened, false otherwise.
-     */
-    default boolean canOpen() {
-        return true;
-    }
 
     /**
      * Requests the server to move the item in the specified slot to the player's inventory.
@@ -124,9 +132,18 @@ public interface QuickLootContainer {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
         if(player == null) return;
 
-        ClientPlayerInteractionManager interactionManager = MinecraftClient.getInstance().interactionManager;
-        if(interactionManager == null) return;
+        if(QuickLootClient.installedOnServer) {
+            Networking.requestItem(slot);
+        } else {
+            ClientPlayerInteractionManager interactionManager = MinecraftClient.getInstance().interactionManager;
+            if(interactionManager == null) return;
 
-        interactionManager.clickSlot(player.currentScreenHandler.syncId, slot, 0, SlotActionType.QUICK_MOVE, player);
+            interactionManager.clickSlot(player.currentScreenHandler.syncId, slot, 0, SlotActionType.QUICK_MOVE, player);
+        }
     }
+
+    /**
+     * Handles the opening of this container when the mod is installed on the server.
+     */
+    void serverOpen();
 }
